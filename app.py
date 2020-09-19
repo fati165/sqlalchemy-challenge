@@ -1,32 +1,29 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.7.6"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 4
-}
+
+from flask import Flask, jsonify
+import sqlalchemy
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+import numpy as np
+# create engine
+engine = create_engine('sqlite:///hawaii.sqlite')
+Base = automap_base()
+Base.prepare(engine, reflect = True)
+Measurement = Base.classes.measurement
+Station = Base.classes.station
+session = Session(engine)
+# step 1:
+app = Flask(__name__)
+@app.route("/")
+def helloWorld():
+    # urls that tell the user the end points that are available
+    return "Hello World"
+@app.route("/stations")
+def stations():
+    # return a list of all the stations in JSON Format
+    listOfStations = session.query(Station.station).all()
+    stationOneDimension = list(np.ravel(listOfStations))
+    return jsonify(stationOneDimension)
+#2nd step:
+if __name__ == '__main__':
+    app.run()
