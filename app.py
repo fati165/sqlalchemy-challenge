@@ -3,7 +3,9 @@ from flask import Flask, jsonify
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, and_
+from sqlalchemy import Column, Integer, String, Float, Date, desc
+
 import numpy as np
 import datetime as dt
 # create engine
@@ -57,10 +59,22 @@ def tobs():
     temp = list(np.ravel(tempobserve))
     return jsonify(temp)
 
-# @app.route("/api/v1.0/<start>") 
-# @app.route("/api/v1.0/<start>/<end>")
-# def startend(start= None, end= None):
+@app.route("/api/v1.0/<start>") 
+def starter(start):
+# Return a JSON list of the minimum temperature, the average temperature, 
+    tobs_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+    filter(Measurement.date >= start).all()
+    
+    return jsonify(tobs_data)
 
+# When given the start and the end date, calculate the TMIN, TAVG,
+#  and TMAX for dates between the start and end date inclusive.
+@app.route("/api/v1.0/<start>/<end>")
+def startend(start= None, end= None):
+    tobs_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+    filter(and_(Measurement.date >= start, Measurement.date <= end)).all()
+    
+    return jsonify(tobs_data)
 
 
 #2nd step:
