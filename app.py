@@ -1,4 +1,3 @@
-
 from flask import Flask, jsonify
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
@@ -22,7 +21,7 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     return (
-        f"/api/v1.0/precipitation:<br/>"
+        f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
         f"/api/v1.0/<start>/<end>"
@@ -70,7 +69,7 @@ def starter(start):
 # When given the start and the end date, calculate the TMIN, TAVG,
 #  and TMAX for dates between the start and end date inclusive.
 @app.route("/api/v1.0/<start>/<end>")
-def startend(start= None, end= None):
+def startend(start, end):
     tobs_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
     filter(and_(Measurement.date >= start, Measurement.date <= end)).all()
     
