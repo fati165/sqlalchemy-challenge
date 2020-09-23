@@ -24,19 +24,25 @@ def index():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start>/<end>"
+        f"/api/v1.0/<start>"
+        f"/api/v1.0/<end>"
     )
 @app.route("/api/v1.0/stations")
 def stations():
     # return a list of all the stations in JSON Format
+    session = Session(engine)
+
     listOfStations = session.query(Station.station).all()
     stationOneDimension = list(np.ravel(listOfStations))
+    session.close()
     return jsonify(stationOneDimension)
 
 @app.route("/api/v1.0/precipitation")
 def precipt():
 #Convert the query results to a dictionary using date as the key and prcp as the value.
 #eturn the JSON representation of your dictionary.
+    session = Session(engine)
+
     lastday = dt.date(2017,8,23)
     lastminus1= lastday- dt.timedelta(days=365)
     # Perform a query to retrieve the date and precipitation scores
@@ -46,9 +52,13 @@ def precipt():
 #append dict
     for date, precipt in lastyear:
         precipitation[date]= precipt
+    session.close()
+
     return jsonify(precipitation)
 @app.route("/api/v1.0/tobs")
 def tobs():
+    session = Session(engine)
+
     lastday = dt.date(2017,8,23)
     lastminus1= lastday- dt.timedelta(days=365)
     tempobserve = session.query(Measurement.tobs).\
@@ -56,26 +66,29 @@ def tobs():
     filter(Measurement.date >= lastminus1).\
     group_by(Measurement.date).all()
     temp = list(np.ravel(tempobserve))
+    session.close()
+
     return jsonify(temp)
 
 @app.route("/api/v1.0/<start>") 
 def starter(start):
 # Return a JSON list of the minimum temperature, the average temperature, 
+    session = Session(engine)
+
     tobs_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
     filter(Measurement.date >= start).all()
-    
+    tobsRavel= list(np.ravel(tobs_data))
+
     return jsonify(tobs_data)
 
 # When given the start and the end date, calculate the TMIN, TAVG,
 #  and TMAX for dates between the start and end date inclusive.
-@app.route("/api/v1.0/<start>/<end>")
-def startend(start, end):
-    tobs_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-    filter(and_(Measurement.date >= start, Measurement.date <= end)).all()
-    
-    return jsonify(tobs_data)
+@app.route("/api/v1.0/<end>")
+def end():
+    return "wait"
+
 
 
 #2nd step:
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
