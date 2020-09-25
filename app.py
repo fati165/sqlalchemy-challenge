@@ -24,7 +24,7 @@ def index():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start>"
+        f"/api/v1.0/start<br/>"
         f"/api/v1.0/<end>"
     )
 @app.route("/api/v1.0/stations")
@@ -71,21 +71,24 @@ def tobs():
     return jsonify(temp)
 
 @app.route("/api/v1.0/<start>") 
-def starter(start):
+@app.route("/api/v1.0/<start>,<end>")
+def starter(start, end=None):
 # Return a JSON list of the minimum temperature, the average temperature, 
     session = Session(engine)
-
-    tobs_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-    filter(Measurement.date >= start).all()
+    if not end:
+        tobs_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+        filter(Measurement.date >= start).all()
+    else:
+        tobs_data = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+        filter(Measurement.date >= start).filter(Measurement.date <= end).all()
     tobsRavel= list(np.ravel(tobs_data))
+    session.close()
 
-    return jsonify(tobs_data)
+    return jsonify(tobsRavel)
 
 # When given the start and the end date, calculate the TMIN, TAVG,
 #  and TMAX for dates between the start and end date inclusive.
-@app.route("/api/v1.0/<end>")
-def end():
-    return "wait"
+
 
 
 
